@@ -13,3 +13,4 @@ Cargo.lock
 /src/.DS_Store
 *.un~
 /src/main
+.DS_Store

@@ -1,4 +1,9 @@
+extern crate regex;
+
 use std::collections::{HashSet, HashMap};
+use std::fs::File;
+use std::io::prelude::*;
+use regex::Regex;
 
 #[allow(dead_code)]
 fn day1() {
@@ -81,13 +86,71 @@ fn day2() {
           }
         }
         
-        println!("Day 2:B {}", result);
+        println!("Day 2:B = {}", result);
       }
     }
+  }
+}
+
+#[allow(dead_code)]
+fn day3() {
+  let mut map: HashMap<(i32, i32), i32> = HashMap::new();
+  let mut file = File::open("../inputs/day3.txt").unwrap();
+  let mut contents = String::new();
+  file.read_to_string(&mut contents).unwrap();
+  let regex = Regex::new(r"#(\d+) @ (\d+),(\d+): (\d+)x(\d+)").unwrap();
+  
+  for capture in regex.captures_iter(&contents) {
+    let x = capture[2].parse::<i32>().unwrap();
+    let y = capture[3].parse::<i32>().unwrap();
+    let offset_x = capture[4].parse::<i32>().unwrap();
+    let offset_y = capture[5].parse::<i32>().unwrap();
+    
+    for dx in 0..offset_x {
+      for dy in 0..offset_y {
+        let point = (x + dx, y + dy);
+        let counter = map.entry(point).or_insert(0);
+        *counter += 1;
+      }
+    }
+  }
+  
+  let mut result = 0;
+  
+  for (_, count) in map.iter() {
+    if *count > 1 {
+      result += 1;
+    }
+  }  
+  
+  println!("Day 3:A = {}", result);
+  
+  'outer: for capture in regex.captures_iter(&contents) {
+    let id = &capture[1]; 
+    let x = capture[2].parse::<i32>().unwrap();
+    let y = capture[3].parse::<i32>().unwrap();
+    let offset_x = capture[4].parse::<i32>().unwrap();
+    let offset_y = capture[5].parse::<i32>().unwrap();
+    
+    for dx in 0..offset_x {
+      for dy in 0..offset_y {
+        let point = (x + dx, y + dy);
+        
+        if let Some(count) = map.get(&point) {
+          if *count > 1 {
+            continue 'outer; 
+          }
+        }
+      }
+    }
+    
+    println!("Day 3:B = {}", id);
+    break;
   }
 }
 
 fn main() {
   day1();
   day2();
+  day3();
 }

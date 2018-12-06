@@ -320,12 +320,11 @@ fn day5() {
   let mut stack: Vec<char> = Vec::new();
   
   for character in input.chars() {
-    if let Some(c) = stack.pop() {
-      if character != c && character.eq_ignore_ascii_case(&c) {
-        continue;
+    if let Some(c) = stack.last() {
+      if character != *c && character.eq_ignore_ascii_case(&c) {
+        stack.pop();
       }
       else {
-        stack.push(c);
         stack.push(character);
       }
     }
@@ -348,12 +347,11 @@ fn day5() {
         continue;
       }
       
-      if let Some(c) = stack.pop() {
-        if character != c && character.eq_ignore_ascii_case(&c) {
-          continue;
+      if let Some(c) = stack.last() {
+        if character != *c && character.eq_ignore_ascii_case(&c) {
+          stack.pop();
         }
         else {
-          stack.push(c);
           stack.push(character);
         }
       }
@@ -385,14 +383,6 @@ fn hamilton_distance(c1: (i32, i32), c2: (i32, i32)) -> i32 {
 #[allow(dead_code)]
 fn day6() {
   
-//  let inputs = [
-//    (1, 1),
-//    (1, 6),
-//    (8, 3),
-//    (3, 4),
-//    (5, 5),
-//    (8, 9)
-//  ];
   let inputs = [
     (353, 177),
     (233, 332),

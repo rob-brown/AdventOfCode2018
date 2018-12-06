@@ -4,7 +4,7 @@ use std::collections::{HashSet, HashMap};
 use std::fs::File;
 use std::io::prelude::*;
 use regex::Regex;
-use std::cmp::min;
+use std::cmp::{min, max};
 
 #[allow(dead_code)]
 fn day1() {
@@ -371,10 +371,177 @@ fn day5() {
   println!("Day 5:B = {}", shortest);
 }
 
+enum Location {
+  Site(i32),
+  Nearby(i32, i32),
+  NoMansLand,
+  Border(i32),
+}
+
+fn hamilton_distance(c1: (i32, i32), c2: (i32, i32)) -> i32 {
+  let (x1, y1) = c1;
+  let (x2, y2) = c2;
+  i32::abs(x1 - x2) + i32::abs(y1 - y2)
+}
+
+#[allow(dead_code)]
+fn day6() {
+  
+//  let inputs = [
+//    (1, 1),
+//    (1, 6),
+//    (8, 3),
+//    (3, 4),
+//    (5, 5),
+//    (8, 9)
+//  ];
+  let inputs = [
+    (353, 177),
+    (233, 332),
+    (178, 231),
+    (351, 221),
+    (309, 151),
+    (105, 289),
+    (91, 236),
+    (321, 206),
+    (156, 146),
+    (94, 82),
+    (81, 114),
+    (182, 122),
+    (81, 153),
+    (319, 312),
+    (334, 212),
+    (275, 93),
+    (224, 355),
+    (347, 94),
+    (209, 65),
+    (118, 172),
+    (113, 122),
+    (182, 320),
+    (191, 178),
+    (99, 70),
+    (260, 184),
+    (266, 119),
+    (177, 178),
+    (313, 209),
+    (61, 285),
+    (155, 218),
+    (354, 198),
+    (274, 53),
+    (225, 138),
+    (228, 342),
+    (187, 165),
+    (226, 262),
+    (143, 150),
+    (124, 159),
+    (325, 210),
+    (163, 176),
+    (326, 91),
+    (170, 193),
+    (84, 265),
+    (199, 248),
+    (107, 356),
+    (45, 340),
+    (277, 173),
+    (286, 44),
+    (242, 150),
+    (120, 230)
+  ];
+  
+  let mut candidates: HashMap<i32, Option<i32> > = HashMap::new();
+  let mut map: HashMap<(i32, i32), Location> = HashMap::new();
+  let mut max_x = 0;
+  let mut max_y = 0;
+  
+  // Sets up the area.
+  for (n, (x, y)) in inputs.iter().enumerate() {
+    candidates.insert(n as i32, Some(0));
+    map.insert((*x, *y), Location::Site(n as i32));
+    max_x = max(max_x, *x);
+    max_y = max(max_y, *y);
+  }
+  
+  // Calculates claims
+  for x in 0..=max_x {
+    for y in 0..=max_y {
+      let point = (x, y);
+      
+      // Ignore the original sites.
+      if map.contains_key(&point) {
+        continue;
+      }
+      
+      let mut nearest_neighbor: Option<(i32, i32)> = None;
+      
+      for (n, (px, py)) in inputs.iter().enumerate() {
+        let distance = hamilton_distance(point, (*px, *py));
+        
+        if let Some((_, nearest_distance)) = nearest_neighbor {
+          if distance < nearest_distance {
+            nearest_neighbor = Some((n as i32, distance));
+            if x == 0 || x == max_x ||  y == 0 || y ==  max_y {
+              map.insert(point, Location::Border(n as i32));
+            }
+            else {
+              map.insert(point, Location::Nearby(n as i32, distance));
+            }
+          }
+          else if distance == nearest_distance {
+            map.insert(point, Location::NoMansLand);
+          }
+        }
+        else {
+          nearest_neighbor = Some((n as i32, distance));
+        }
+      }
+    }
+  }
+  
+  // Calculate area sizes
+  for (_, location) in map.iter() {
+    match location {
+      Location::Site(id) => {
+        let entry = candidates.entry(*id).or_insert(None);
+        if let Some(count) = *entry {
+          *entry = Some(count + 1);
+        }
+      }
+      Location::Nearby(id, _) => {
+        let entry = candidates.entry(*id).or_insert(None);
+        if let Some(count) = *entry {
+          *entry = Some(count + 1);
+        }
+      }
+      Location::NoMansLand =>
+        continue,
+      Location::Border(id) => {
+        let entry = candidates.entry(*id).or_insert(None);
+        *entry = None;
+      }
+    }
+  }
+  
+  // Find the greatest area.
+  let mut max_area = 0;
+  
+  for (_, entry) in candidates {
+    if let Some(count) = entry {
+      max_area = max(max_area, count);
+    }
+  }
+
+  // 4829
+  println!("Day 6:A = {}", max_area);
+  
+  
+  // 46966
+}
+
 fn main() {
-  day1();
-  day2();
-  day3();
-  day4();
-  day5();
+//  day1();
+//  day2();
+//  day3();
+//  day4();
+//  day5();
+  day6();
 }

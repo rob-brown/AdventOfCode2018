@@ -461,10 +461,10 @@ struct Time {
 impl Time {
     fn new(month: i32, day: i32, hour: i32, minute: i32) -> Time {
         Time {
-            month: month,
-            day: day,
-            hour: hour,
-            minute: minute,
+            month,
+            day,
+            hour,
+            minute,
         }
     }
 }
@@ -477,10 +477,7 @@ struct LogItem {
 
 impl LogItem {
     fn new(time: Time, entry: String) -> LogItem {
-        LogItem {
-            time: time,
-            entry: entry,
-        }
+        LogItem { time, entry }
     }
 }
 
@@ -495,7 +492,7 @@ struct GuardInfo {
 impl GuardInfo {
     fn new(id: i32) -> GuardInfo {
         GuardInfo {
-            id: id,
+            id,
             total_time_asleep: 0,
             previous_sleep: None,
             minute_asleep: HashMap::new(),
@@ -578,7 +575,7 @@ fn day4() {
             current_guard = captures[1].parse::<i32>().unwrap();
             let _ = map
                 .entry(current_guard)
-                .or_insert(GuardInfo::new(current_guard));
+                .or_insert_with(|| GuardInfo::new(current_guard));
         }
     }
 

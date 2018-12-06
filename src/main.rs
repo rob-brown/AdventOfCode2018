@@ -1,5 +1,3 @@
-extern crate regex;
-
 use std::collections::{HashSet, HashMap};
 use std::fs::File;
 use std::io::prelude::*;
@@ -533,15 +531,28 @@ fn day6() {
   // 4829
   println!("Day 6:A = {}", max_area);
   
+  let mut safe_count = 0;
+  
+  for x in 0..=max_x {
+    for y in 0..=max_y {
+      let point = (x, y);
+      let total_distance: i32 = inputs.iter().map(|x| hamilton_distance(*x, point)).sum();
+      
+      if total_distance < 10_000 {
+        safe_count += 1;
+      }
+    }
+  }
   
   // 46966
+  println!("Day 6:B = {}", safe_count);
 }
 
 fn main() {
-//  day1();
-//  day2();
-//  day3();
-//  day4();
-//  day5();
+  day1();
+  day2();
+  day3();
+  day4();
+  day5();
   day6();
 }

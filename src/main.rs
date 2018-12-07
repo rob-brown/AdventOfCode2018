@@ -829,6 +829,123 @@ fn day6() {
     println!("Day 6:B = {}", safe_count);
 }
 
+#[allow(dead_code)]
+fn day7() {
+    let mut file = File::open("../inputs/day7.txt").unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    let regex = Regex::new(r"Step (\w) must be finished before step (\w) can begin.").unwrap();
+    let mut rules: HashMap<String, Vec<String> > = HashMap::new();
+    
+    for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars() {
+        rules.insert(letter.to_string(), Vec::new());
+    }
+    
+    for capture in regex.captures_iter(&contents) {
+        let x = capture[1].to_string();
+        let y = capture[2].to_string();
+        
+        let list = rules.entry(x).or_insert(Vec::new());
+        list.push(y);
+    }
+    
+    {
+        let mut result: Vec<String> = Vec::new();
+        let mut remaining_rules = rules.clone();
+        
+        while remaining_rules.is_empty() == false {
+            let mut independent: Vec<String> = Vec::new();
+            
+            'outer: for (x, _) in remaining_rules.iter() {
+                for (y, deps) in remaining_rules.iter() {
+                    if x == y {
+                        continue;
+                    }
+                    
+                    if deps.contains(x) {
+                        continue 'outer;
+                    }
+                }
+                
+                independent.push(x.to_string());
+            }
+            
+            independent.sort();
+            
+            let first = &independent[0];
+            result.push(first.to_string());
+            remaining_rules.remove(first);
+        }
+        
+        // OKBNLPHCSVWAIRDGUZEFMXYTJQ
+        println!("Day 7:A = {}", result.join(""));
+    }
+    
+    {
+        let mut run_times: HashMap<String, i32> = HashMap::new();
+        
+        for (n, letter) in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().enumerate() {
+            run_times.insert(letter.to_string(), n as i32 + 61);
+        }
+        
+        let mut time = 0;
+        let mut jobs: Vec<(String, i32)> = Vec::new();
+        let max_job_count = 5;
+        let mut remaining_rules = rules.clone();
+        
+        while remaining_rules.is_empty() == false || jobs.is_empty() == false {
+            
+            if jobs.len() < max_job_count {
+                let mut independent: Vec<String> = Vec::new();
+                
+                'outer2: for (x, _) in remaining_rules.iter() {
+                    for (y, deps) in remaining_rules.iter() {
+                        if x == y {
+                            continue;
+                        }
+                        
+                        if deps.contains(x) {
+                            continue 'outer2;
+                        }
+                    }
+                    
+                    independent.push(x.to_string());
+                }
+                
+                independent.sort();
+                
+                for letter in independent {
+                    if jobs.len() >= max_job_count {
+                        break;
+                    }
+                    
+                    if jobs.iter().any(|(x, _)| *x == letter) {
+                        continue;
+                    }
+                    
+                    let run_time = run_times.get(&letter).unwrap();
+                    jobs.push((letter.to_string(), *run_time));
+                }
+            }
+            
+            for (letter, remaining) in jobs.iter_mut() {
+                *remaining -= 1;
+                
+                if *remaining == 0 {
+                    remaining_rules.remove(letter);
+                }
+            }
+            
+            jobs.retain(|(_, n)| *n >= 0);
+            
+            time += 1;
+        }
+        
+        // 982
+        println!("Day 7:B = {}", time - 1);
+    }
+}
+
 fn main() {
     day1();
     day2();
@@ -836,4 +953,5 @@ fn main() {
     day4();
     day5();
     day6();
+    day7();
 }

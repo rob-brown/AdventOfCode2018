@@ -946,6 +946,69 @@ fn day7() {
     }
 }
 
+fn sum_metadata<'a>(iterator: &mut std::str::Split<'a, &str>) -> i32 {
+    let child_count = iterator.next().unwrap().parse::<i32>().unwrap();
+    let metadata_count = iterator.next().unwrap().parse::<i32>().unwrap();
+    let mut result = 0;
+    
+    for _ in 0..child_count {
+        result += sum_metadata(iterator);
+    }
+    
+    for _ in 0..metadata_count {
+        result += iterator.next().unwrap().parse::<i32>().unwrap();
+    }
+    
+    result
+}
+
+fn node_value<'a>(iterator: &mut std::str::Split<'a, &str>) -> i32 {
+    let child_count = iterator.next().unwrap().parse::<i32>().unwrap();
+    let metadata_count = iterator.next().unwrap().parse::<i32>().unwrap();
+    let mut result = 0;
+    
+    if child_count == 0 {
+        for _ in 0..metadata_count {
+            result += iterator.next().unwrap().parse::<i32>().unwrap();
+        }
+    }
+    else {
+        let mut map: HashMap<i32, i32> = HashMap::new();
+        
+        for n in 0..child_count {
+            map.insert(n + 1, node_value(iterator));
+        }
+        
+        for _ in 0..metadata_count {
+            let meta = iterator.next().unwrap().parse::<i32>().unwrap();
+            
+            if let Some(value) = map.get(&meta) {
+                result += value;
+            }
+        }
+    }
+    
+    result
+}
+
+#[allow(dead_code)]
+fn day8() {
+    let mut file = File::open("../inputs/day8.txt").unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    let mut words = contents.split(" ");
+    let sum = sum_metadata(&mut words);
+    
+    // 46781
+    println!("Day 8:A = {}", sum);
+    
+    let mut words = contents.split(" ");
+    let value = node_value(&mut words);
+    
+    // 21405
+    println!("Day 8:B = {}", value);
+}
+
 fn main() {
     day1();
     day2();
@@ -954,4 +1017,5 @@ fn main() {
     day5();
     day6();
     day7();
+    day8();
 }

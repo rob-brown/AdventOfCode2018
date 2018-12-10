@@ -1,6 +1,6 @@
 use regex::Regex;
 use std::cmp::{max, min};
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -1009,6 +1009,122 @@ fn day8() {
     println!("Day 8:B = {}", value);
 }
 
+fn calculate_score(player_count: usize, marble_count: usize) -> usize {
+    let mut marbles: VecDeque<usize> = VecDeque::new();
+    marbles.push_front(0);
+    let mut scores = vec!(0; player_count);
+    
+    for marble in 1..marble_count {
+        if marble % 23 == 0 {
+            for _ in 0..7 {
+                let removed = marbles.pop_back().unwrap();
+                marbles.push_front(removed);
+            }
+            
+            scores[marble % player_count] += marble + marbles.pop_front().unwrap();
+        }
+        else {
+            for _ in 0..2 {
+                let removed = marbles.pop_front().unwrap();
+                marbles.push_back(removed);
+            }
+            marbles.push_front(marble);
+        }
+    }
+    
+    *scores.iter().max().unwrap()
+}
+
+#[allow(dead_code)]
+fn day9() {
+    let player_count = 486;
+    let marble_count = 70_833;
+    
+    println!("Day 9:A = {}", calculate_score(player_count, marble_count));
+    println!("Day 9:B = {}", calculate_score(player_count, marble_count * 100));
+}
+
+fn print_points(points: &HashMap<(i32, i32), (i32, i32)>) -> bool {
+    
+    let mut min_x = i32::max_value();
+    let mut min_y = i32::max_value();
+    let mut max_x = 0;
+    let mut max_y = 0;
+    
+    for ((x, y), _) in points {
+        min_x = min(min_x, *x);
+        min_y = min(min_y, *y);
+        max_x = max(max_x, *x);
+        max_y = max(max_y, *y);
+    }
+    
+    if max_x - min_x > 64 {
+        return false
+    }
+    
+    for y in min_y..=max_y {
+        let mut line = "".to_string();
+        
+        for x in min_x..=max_x {
+            if let Some(_) = points.get(&(x, y)) {
+                line += "#";
+            }
+            else {
+                line += " ";
+            }
+        }
+        
+        println!("{}", line);
+    }
+    
+    return true
+}
+
+fn new_points(points: &HashMap<(i32, i32), (i32, i32)>) -> HashMap<(i32, i32), (i32, i32)> {
+    
+    let mut new_points: HashMap<(i32, i32), (i32, i32)> = HashMap::new();
+    
+    for ((x, y), (v_x, v_y)) in points.iter() {
+        new_points.insert((x + v_x, y + v_y), (*v_x, *v_y));
+    }
+    
+    new_points
+}
+
+#[allow(dead_code)]
+fn day10() {
+    let mut file = File::open("../inputs/day10.txt").unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    let regex = Regex::new(r"position=< ?(-?\d+),  ?(-?\d+)> velocity=< ?(-?\d+),  ?(-?\d+)>").unwrap();
+    
+    let mut inputs: HashMap<(i32, i32), (i32, i32)> = HashMap::new();
+    
+    for capture in regex.captures_iter(&contents) {
+        let x = capture[1].parse::<i32>().unwrap();
+        let y = capture[2].parse::<i32>().unwrap();
+        let v_x = capture[3].parse::<i32>().unwrap();
+        let v_y = capture[4].parse::<i32>().unwrap();
+        
+        inputs.insert((x, y), (v_x, v_y));
+    }
+    
+    let mut count = 0;
+
+    loop {
+        if print_points(&inputs) {
+            // AHZLLCAL
+            println!("Day 10:A = {}", "AHZLLCAL");
+            
+            // 10333
+            println!("Day 10:B = {}", count);
+            break;
+        }
+        inputs = new_points(&inputs);
+        count += 1;
+    }
+}
+
 fn main() {
     day1();
     day2();
@@ -1018,4 +1134,6 @@ fn main() {
     day6();
     day7();
     day8();
+    day9();
+    day10();
 }

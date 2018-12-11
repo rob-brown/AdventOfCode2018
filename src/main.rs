@@ -1125,6 +1125,67 @@ fn day10() {
     }
 }
 
+fn calculate_power_level(x: i32, y: i32, serial_number: i32) -> i32 {
+    let rack_id = x + 10;
+    let power_level = (rack_id * y + serial_number) * rack_id;
+    
+    power_level / 100 % 10 - 5
+}
+
+#[allow(dead_code)]
+fn day11() {
+    let serial_number = 2187;
+    let mut max_power = 0;
+    let mut max_point = (1, 1);
+    
+    // See https://en.wikipedia.org/wiki/Summed-area_table
+    let mut grid: [[i32; 301]; 301] = [[0; 301]; 301];
+    
+    for y in 1..=300 {
+        for x in 1..=300 {
+            let power = calculate_power_level(x as i32, y as i32, serial_number);
+            grid[y][x] = power + grid[y - 1][x] + grid[y][x - 1] - grid[y - 1][x - 1];
+        }
+    }
+
+    for x in 3..=300 {
+        for y in 3..300 {
+            let sum = grid[y][x] - grid[y - 3][x] - grid[y][x - 3] + grid[y - 3][x - 3];
+            
+            if sum > max_power {
+                max_power = sum;
+                max_point = (x, y);
+            }
+        }
+    }
+    
+    // 235,85
+    let (x, y) = max_point;
+    println!("Day 11:A = {},{}", x, y);
+    
+    let mut max_power = 0;
+    let mut max_point = (1, 1);
+    let mut max_size = 1;
+    
+    for size in 1..=300 {
+        for y in size..=300 {
+            for x in size..=300 {
+                let sum = grid[y][x] - grid[y - size][x] - grid[y][x - size] + grid[y - size][x - size];
+                
+                if sum > max_power {
+                    max_power = sum;
+                    max_point = (x, y);
+                    max_size = size;
+                }
+            }
+        }
+    }
+    
+    // 233,40,13
+    let (x, y) = max_point;
+    println!("Day 11:B = {},{},{}", x - max_size + 1, y - max_size + 1, max_size);
+}
+
 fn main() {
     day1();
     day2();
@@ -1136,4 +1197,5 @@ fn main() {
     day8();
     day9();
     day10();
+    day11();
 }

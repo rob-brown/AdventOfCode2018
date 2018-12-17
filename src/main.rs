@@ -1186,6 +1186,116 @@ fn day11() {
     println!("Day 11:B = {},{},{}", x - max_size + 1, y - max_size + 1, max_size);
 }
 
+#[allow(dead_code)]
+fn day12() {
+    let mut initial: HashSet<i32> = HashSet::new();
+    let initial_string = "#.##.##.##.##.......###..####..#....#...#.##...##.#.####...#..##..###...##.#..#.##.#.#.#.#..####..#";
+    
+    for (n, c) in initial_string.chars().enumerate() {
+        if c == '#' {
+            initial.insert(n as i32);
+        }
+    }
+    
+    let mut rules: HashMap<(bool, bool, bool, bool, bool), bool> = HashMap::new();
+    
+    let input = "
+    ..### => .
+    ##..# => #
+    #..## => .
+    .#..# => .
+    #.##. => .
+    #.... => .
+    ##... => #
+    #...# => .
+    ###.# => #
+    ##.## => .
+    ....# => .
+    ..##. => #
+    ..#.. => .
+    ##.#. => .
+    .##.# => #
+    #..#. => #
+    .##.. => #
+    ###.. => #
+    .###. => #
+    ##### => #
+    ####. => .
+    .#.#. => .
+    ...#. => #
+    #.### => .
+    .#... => #
+    .#### => .
+    #.#.# => #
+    ...## => .
+    ..... => .
+    .#.## => #
+    ..#.# => #
+    #.#.. => #
+    ";
+    let regex = Regex::new(r"(.|#)(.|#)(.|#)(.|#)(.|#) => (.|#)").unwrap();
+
+    for capture in regex.captures_iter(&input) {
+        let a = &capture[1] == "#";
+        let b = &capture[2] == "#";
+        let c = &capture[3] == "#";
+        let d = &capture[4] == "#";
+        let e = &capture[5] == "#";
+        let f = &capture[6] == "#";
+        
+        rules.insert((a, b, c, d, e), f);
+    }
+
+    let mut diffs: VecDeque<i32> = VecDeque::new();
+    let mut previous_sum: i32 = initial.iter().sum();
+    let iterations = 1000;
+    let mut current = initial;
+    
+    for g in 1..iterations {
+        let mut next: HashSet<i32> = HashSet::new();
+        let mut min_index = i32::max_value();
+        let mut max_index = 0;
+        
+        for n in current.iter() {
+            min_index = min(min_index - 2, *n);
+            max_index = max(max_index + 2, *n);
+        }
+        
+        for i in min_index..=max_index {
+            let index = i as i32;
+            let pattern = (current.contains(&(index - 2)), current.contains(&(index - 1)), current.contains(&index), current.contains(&(index + 1)), current.contains(&(index + 2)));
+            
+            if let Some(present) = rules.get(&pattern) {
+                if *present {
+                    next.insert(index);
+                }
+            }
+        }
+        
+        let sum: i32 = next.iter().sum();
+        let diff = sum - previous_sum;
+        previous_sum = sum;
+        diffs.push_back(diff);
+        
+        if g == 20 {
+            // 3903
+            println!("Day 12:A = {}", sum);
+        }
+        
+        if diffs.len() > 100 {
+            diffs.pop_front();
+        }
+        
+        current = next;
+    }
+    
+    let sum: i32 = current.iter().sum();
+    let last_diff = diffs[diffs.len() - 1];
+    let total = (50_000_000_000_i64 - iterations + 1) * (last_diff as i64) + (sum as i64);
+    
+    // 3450000002268
+    println!("Day 12:B = {}", total);}
+
 fn main() {
     day1();
     day2();
@@ -1198,4 +1308,5 @@ fn main() {
     day9();
     day10();
     day11();
+    day12();
 }

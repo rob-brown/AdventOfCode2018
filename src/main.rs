@@ -1294,7 +1294,62 @@ fn day12() {
     let total = (50_000_000_000_i64 - iterations + 1) * (last_diff as i64) + (sum as i64);
     
     // 3450000002268
-    println!("Day 12:B = {}", total);}
+    println!("Day 12:B = {}", total);
+}
+
+#[allow(dead_code)]
+fn day14() {
+    let input = 540561;
+    let sequence = &[5, 4, 0, 5, 6, 1];
+    let sequence_length = sequence.len();
+    let mut recipes: Vec<usize> = vec!(3, 7);
+    let mut index1 = 0;
+    let mut index2 = 1;
+    let part_2_answer;
+    
+    loop {
+        let recipe1 = recipes[index1];
+        let recipe2 = recipes[index2];
+        let sum = recipe1 + recipe2;        
+        let new_recipe1 = sum / 10;
+        let new_recipe2 = sum % 10;
+        let mut two_recipes = false;
+        
+        if new_recipe1 == 0 {
+            recipes.push(new_recipe2);
+        }
+        else {
+            two_recipes = true;
+            recipes.push(new_recipe1);
+            recipes.push(new_recipe2);
+        }
+        
+        index1 = (index1 + recipe1 + 1) % recipes.len();
+        index2 = (index2 + recipe2 + 1) % recipes.len();
+        
+        let count = recipes.len();
+        
+        if count > sequence_length {
+            if &recipes[(count - sequence_length)..count] == sequence {
+                part_2_answer = count - sequence_length;
+                break;
+            }
+
+            if two_recipes && &recipes[(count - sequence_length - 1)..(count - 1)] == sequence {
+                part_2_answer = count - sequence_length - 1;
+                break;
+            }
+        }
+    }
+    
+    let part_1_answer = &recipes[input..(input + 10)];
+    
+    // 1413131339
+    println!("Day 14:A = {}", part_1_answer.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(""));
+    
+    // 20254833
+    println!("Day 14:B = {}", part_2_answer);
+}
 
 fn main() {
     day1();
@@ -1309,4 +1364,5 @@ fn main() {
     day10();
     day11();
     day12();
+    day14();
 }

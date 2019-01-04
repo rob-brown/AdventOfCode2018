@@ -1351,18 +1351,117 @@ fn day14() {
     println!("Day 14:B = {}", part_2_answer);
 }
 
+#[derive(Debug)]
+enum SoilType {
+    Spring,
+    Sand,
+    Clay,
+    DriedSand,
+    WetSand,
+}
+
+fn flow(map: &mut HashMap<(i32, i32), SoilType>, point: (i32, i32), max_y: i32) {
+    let (x, y) = point;
+    
+    if y == max_y {
+        map.insert(point, SoilType::DriedSand);
+        return
+    }
+    
+    flow(&mut map, (x, y + 1), max_y);
+    
+    let below = map.get((x, y + 1));
+    
+    match soil_type {
+        SoilType::Spring | SoilType::DriedSand | SoilType::Sand =>
+            println!("This shouldn't happen");
+            break,
+        
+        SoilType::WetSand =>
+            // Go left and right
+            count += 1,
+            
+        SoilType::Clay =>
+            continue,
+    }
+    
+}
+
+#[allow(dead_code)]
+fn day17() {
+    let mut file = File::open("../inputs/day17.txt").unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    let regex = Regex::new(r"(x|y)=(\d+), (x|y)=(\d+)..(\d+)").unwrap();
+    
+    let mut map: HashMap<(i32, i32), SoilType> = HashMap::new();
+    let mut max_y = 0;
+    
+    for capture in regex.captures_iter(&contents) {
+        let axis1 = &capture[1];
+        let point = capture[2].parse::<i32>().unwrap();
+        let axis2 = &capture[3];
+        let range_start = capture[4].parse::<i32>().unwrap();
+        let range_end = capture[5].parse::<i32>().unwrap();
+        
+        match (axis1, axis2) {
+            ("x", "y") => {
+                for y in range_start..range_end {
+                    max_y = max(y, max_y);
+                    map.insert((point, y), SoilType::Clay);
+                }
+            }
+            ("y", "x") => {
+                max_y = max(point, max_y);
+                for x in range_start..range_end {
+                    map.insert((x, point), SoilType::Clay);
+                }
+            }
+            _ =>
+                panic!("Invalid coordinates")
+        }
+    }
+    
+    println!("Clay count {}", map.len());
+    
+    map.insert((500, 0), SoilType::Spring);
+    
+    println!("Max y {}", max_y);
+    
+    flow(&mut map, (500, 1), max_y);
+    
+    let mut count = 0;
+    
+    for (_, soil_type) in map.iter() {
+        match soil_type {
+            SoilType::Spring | SoilType::DriedSand | SoilType::WetSand =>
+                count += 1,
+            SoilType::Sand | SoilType::Clay =>
+                continue,
+        }
+    }
+    
+    println!("Day 17:A = {}", count);
+    
+//    println!("Map: {:?}", map);
+    
+    
+    
+}
+
 fn main() {
-    day1();
-    day2();
-    day3();
-    day4();
-    day5();
-    day6();
-    day7();
-    day8();
-    day9();
-    day10();
-    day11();
-    day12();
-    day14();
+//    day1();
+//    day2();
+//    day3();
+//    day4();
+//    day5();
+//    day6();
+//    day7();
+//    day8();
+//    day9();
+//    day10();
+//    day11();
+//    day12();
+//    day14();
+    day17();
 }

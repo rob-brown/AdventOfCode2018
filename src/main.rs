@@ -1450,26 +1450,16 @@ fn day18() {
         }
     }
     
-    let mut resource_value = 0;
-    
-    for _ in 0..10 {
-        resource_value = step_terrain(&mut before, &mut after);
-        
-        for y in 0..50usize {
-            for x in 0..50usize {
-                before[y][x] = after[y][x];
-            }
-        }
-    }
-    
-    // 564375
-    println!("Day 18:A = {}", resource_value);
-    
     let mut state_history: HashMap<String, i32> = HashMap::new();
     let mut resources_history: HashMap<i32, i32> = HashMap::new();
     
     for n in 0..1_000_000_000 {
         let resource_value = step_terrain(&mut before, &mut after);
+        
+        if n == 9 {
+            // 564375
+            println!("Day 18:A = {}", resource_value);
+        }
         
         let mut string = "".to_string();
         
@@ -1489,7 +1479,7 @@ fn day18() {
         
         match state_history.get(&string) {
             Some(loop_start) => {
-                let index = (1_000_000_000 - loop_start) % (n - loop_start) + loop_start;
+                let index = (1_000_000_000 - loop_start) % (n - loop_start) + loop_start - 1;
                 let result = resources_history[&index];
                 
                 // 189720
@@ -1500,8 +1490,8 @@ fn day18() {
                 (),
         }
         
-        state_history.insert(string, n + 1);
-        resources_history.insert(n + 1, resource_value);
+        state_history.insert(string, n);
+        resources_history.insert(n, resource_value);
     }
 }
 

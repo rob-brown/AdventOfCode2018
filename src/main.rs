@@ -3,6 +3,7 @@ use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::BufReader;
 
 #[allow(dead_code)]
 fn day1() {
@@ -1351,6 +1352,159 @@ fn day14() {
     println!("Day 14:B = {}", part_2_answer);
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+enum Terrain {
+    Open,
+    Trees,
+    Lumberyard,
+}
+
+fn step_terrain(before: &mut [[Terrain; 50]; 50], after: &mut [[Terrain; 50]; 50]) -> i32 {
+    let mut tree_count = 0;
+    let mut lumber_count = 0;
+    
+    for y in 0..50usize {
+        for x in 0..50usize {
+            let mut trees = 0;
+            let mut lumber = 0;
+            
+            for dy in -1..=1 {
+                for dx in -1..=1 {
+                    if dx == 0 && dy == 0 {
+                        continue;
+                    }
+                    let ax = x as i32 + dx;
+                    let ay = y as i32 + dy;
+                    
+                    if ax >= 0 && ax < 50 && ay >= 0 && ay < 50 {
+                        match before[ay as usize][ax as usize] {
+                            Terrain::Open =>
+                                continue,
+                            Terrain::Trees =>
+                                trees += 1,
+                            Terrain::Lumberyard =>
+                                lumber += 1,
+                        }
+                    }
+                }
+            }
+            
+            match before[y][x] {
+                Terrain::Open => {
+                    if trees >= 3 {
+                        after[y][x] = Terrain::Trees;
+                        tree_count += 1;
+                    }
+                    else {
+                        after[y][x] = Terrain::Open;
+                    }
+                }
+                Terrain::Trees => {
+                    if lumber >= 3 {
+                        after[y][x] = Terrain::Lumberyard;
+                        lumber_count += 1;
+                    }
+                    else {
+                        after[y][x] = Terrain::Trees;
+                        tree_count += 1;
+                    }
+                }
+                Terrain::Lumberyard => {
+                    if lumber >= 1 && trees >= 1 {
+                        after[y][x] = Terrain::Lumberyard;
+                        lumber_count += 1;
+                    }
+                    else {
+                        after[y][x] = Terrain::Open;
+                    }
+                }
+            }
+        }
+    }
+    
+    tree_count * lumber_count
+}
+
+#[allow(dead_code)]
+fn day18() {
+    let file = File::open("../inputs/day18.txt").unwrap();
+    let file = BufReader::new(&file);
+    let mut before: [[Terrain; 50]; 50] = [[Terrain::Open; 50]; 50];
+    let mut after: [[Terrain; 50]; 50] = [[Terrain::Open; 50]; 50];
+    
+    for (y, line) in file.lines().enumerate() {
+        for (x, c) in line.unwrap().chars().enumerate() {
+            match c {
+                '.' => {
+                    before[y][x] = Terrain::Open
+                }
+                '#' => {
+                    before[y][x] = Terrain::Lumberyard
+                }
+                '|' => {
+                    before[y][x] = Terrain::Trees
+                }
+                _ =>
+                    continue
+            }
+        }
+    }
+    
+    let mut resource_value = 0;
+    
+    for _ in 0..10 {
+        resource_value = step_terrain(&mut before, &mut after);
+        
+        for y in 0..50usize {
+            for x in 0..50usize {
+                before[y][x] = after[y][x];
+            }
+        }
+    }
+    
+    // 564375
+    println!("Day 18:A = {}", resource_value);
+    
+    let mut state_history: HashMap<String, i32> = HashMap::new();
+    let mut resources_history: HashMap<i32, i32> = HashMap::new();
+    
+    for n in 0..1_000_000_000 {
+        let resource_value = step_terrain(&mut before, &mut after);
+        
+        let mut string = "".to_string();
+        
+        for y in 0..50usize {
+            for x in 0..50usize {
+                match after[y][x] {
+                    Terrain::Open =>
+                        string += ".",
+                    Terrain::Trees =>
+                        string += "|",
+                    Terrain::Lumberyard =>
+                        string += "#",
+                }
+                before[y][x] = after[y][x];
+            }
+        }
+        
+        match state_history.get(&string) {
+            Some(loop_start) => {
+                let index = (1_000_000_000 - loop_start) % (n - loop_start) + loop_start;
+                let result = resources_history[&index];
+                
+                // 189720
+                println!("Day 18:B = {}", result);
+                break;
+            }
+            None =>
+                (),
+        }
+        
+        state_history.insert(string, n + 1);
+        resources_history.insert(n + 1, resource_value);
+    }
+}
+
 fn main() {
     day1();
     day2();
@@ -1365,4 +1519,5 @@ fn main() {
     day11();
     day12();
     day14();
+    day18();
 }
